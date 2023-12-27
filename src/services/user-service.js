@@ -45,10 +45,10 @@ class UserService {
 
   verifyToken(token) {
     try {
-      const result = jwt.verify(token, JWT_Key);
+      const result = jwt.verify(token, JWT_KEY);
       return result;
     } catch (error) {
-      console.log("Something went wrong in token validation");
+      console.log("Something went wrong in token validation", error);
       throw { error };
     }
   }
@@ -57,6 +57,22 @@ class UserService {
       return bcrypt.compareSync(userInputPassword, encyriptedPassword);
     } catch (error) {
       console.log("Something went wrong in password comparison", error);
+      throw error;
+    }
+  }
+  async isAuthenticated(token) {
+    try {
+      const response = this.verifyToken(token);
+      if (!response) {
+        throw { error: "Invalid Token" };
+      }
+      const user = this.userRepository.getById(response.id);
+      if (!user) {
+        throw { error: "No user with the corrosponding token exist" };
+      }
+      return user.id;
+    } catch (error) {
+      console.log("Something went wrong in the auth process");
       throw error;
     }
   }
